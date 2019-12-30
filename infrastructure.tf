@@ -18,7 +18,7 @@ resource "aws_lambda_permission" "YogalatesBackend" {
 
 resource "aws_lambda_function" "YogalatesBackend" {
   filename      = "artifact/yogalates-backend.zip"
-  function_name = "HiveMonitoring2"
+  function_name = "YogalatesBackend"
   role          = "arn:aws:iam::368263227121:role/service-role/skaaning-house-skill"
   handler       = "index.handler"
   source_code_hash = "${filebase64sha256("artifact/yogalates-backend.zip")}"
