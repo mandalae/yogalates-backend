@@ -22,7 +22,7 @@ resource "aws_lambda_function" "YogalatesBackend" {
   role          = "arn:aws:iam::368263227121:role/service-role/skaaning-house-skill"
   handler       = "index.handler"
   source_code_hash = "${filebase64sha256("artifact/yogalates-backend.zip")}"
-  runtime       = "nodejs10.x"
+  runtime       = "nodejs12.x"
 
   vpc_config {
     subnet_ids = tolist(data.aws_subnet_ids.default.ids)
