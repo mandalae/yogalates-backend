@@ -1,0 +1,24 @@
+{
+  "name": "yogalates-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:local": "node index-local.js",
+    "build": "npm test && rm -rf ./artifact && mkdir artifact && cp -R src artifact/ && cp -R node_modules artifact/ && cp index.js artifact/ && cp package.json artifact/ && cd artifact && zip -r yogalates-backend.zip ./*",
+    "test": "export NODE_ENV=test && nyc mocha test/**/*.test.js",
+    "deploy": "npm run build && rm plan.tf || true && terraform plan -out plan.tf && terraform apply plan.tf"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2",
+    "nyc": "^15.0.0",
+    "sinon": "^8.0.2"
+  }
+}

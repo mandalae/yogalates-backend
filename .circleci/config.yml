@@ -1,0 +1,88 @@
+version: 2
+jobs:
+  install:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+     # Persist everything to make sure we can run the tests in a separate job
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+              - ./
+  build:
+      docker:
+        - image: circleci/node:10.0.0
+      working_directory: ~/repo
+
+      steps:
+          # Attach workspace with everything in it to run the tests
+          - attach_workspace:
+              at: ./
+          # run build!
+          - run:
+              name: Set up git
+              command: git config --global user.email "c@rpediem.com" && git config --global user.name "Builder" && mkdir -p ~/.ssh && touch ~/.ssh/known_hosts && ssh-keygen -F github.com || ssh-keyscan github.com >> ~/.ssh/known_hosts
+          - run: npm run build
+          - run:
+              name: Commit anything left
+              command: git commit -m "Committing leftovers [ci skip]" . || true
+          - run:
+              name: Update version
+              command: npm version minor -m "Upgraded to %s [ci skip]"
+          - run:
+              name: Push changes and tags
+              command: git push && git push --tags
+  deploy:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          # Install the nodejs / npm - We've already set up the required keys
+          name: Download terraform
+          command: curl -o terraform.zip https://releases.hashicorp.com/terraform/0.12.10/terraform_0.12.10_linux_amd64.zip
+      - run:
+          # Install the nodejs / npm - We've already set up the required keys
+          name: Install terraform
+          command: unzip terraform.zip; export PATH=`pwd`:$PATH; echo $PATH; ls -la;
+      - run:
+          name: Build artifacts
+          command: npm run build
+      - run:
+          name: Deploy Lambda
+          command: export TF_VAR_app_version=`node -p "require('./package.json').version.replace(/\./g, '')"` && echo $TF_VAR_app_version && ./terraform init && ./terraform import aws_lambda_function.YogalatesBackend YogalatesBackend && ./terraform plan -out plan.tf && ./terraform apply plan.tf
+
+workflows:
+  version: 2
+  install-build-deploy:
+    jobs:
+      - install
+      - build:
+          requires:
+            - install
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
