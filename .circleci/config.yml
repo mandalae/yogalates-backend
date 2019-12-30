@@ -70,7 +70,7 @@ jobs:
           command: npm run build
       - run:
           name: Deploy Lambda
-          command: export TF_VAR_app_version=`node -p "require('./package.json').version.replace(/\./g, '')"` && echo $TF_VAR_app_version && ./terraform init && ./terraform import aws_lambda_function.YogalatesBackend YogalatesBackend && ./terraform plan -out plan.tf && ./terraform apply plan.tf
+          command: export TF_VAR_app_version=`node -p "require('./package.json').version.replace(/\./g, '')"` && echo $TF_VAR_app_version && ./terraform init && ./terraform import aws_lambda_function.YogalatesBackend YogalatesBackend || true && ./terraform plan -out plan.tf && ./terraform apply plan.tf
 
 workflows:
   version: 2

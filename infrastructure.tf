@@ -12,7 +12,7 @@ data "aws_subnet_ids" "default" {
 
 resource "aws_lambda_permission" "YogalatesBackend" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.HiveMonitoring.function_name}"
+  function_name = "${aws_lambda_function.YogalatesBackend.function_name}"
   principal     = "alexa-appkit.amazon.com"
 }
 
